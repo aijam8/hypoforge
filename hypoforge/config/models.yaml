@@ -1,30 +1,41 @@
-# HypoForge modular model router.
-# Each agent ROLE maps to a model. Honors the PiEvo finding that reasoning/"think"
-# models hurt the strategic/utility layers (-26%) -> strategy roles use crisp
-# NON-reasoning models; generation/critique roles use reasoning models.
-# Providers (all OpenAI-compatible): openrouter, deepseek. Falls back to "mock"
-# (offline, no key) so the tool ALWAYS runs.
+# HypoForge modular model router — one pluggable slot per subtask.
+# Swap any model here without touching code. All via OpenRouter (OpenAI-compatible);
+# set DEEPSEEK_API_KEY to route the deepseek/* ids directly instead.
+# Different roles deliberately use different models so the critique panel argues
+# with genuinely diverse voices.
 
 defaults:
   provider: openrouter
+  model: deepseek/deepseek-chat
   temperature: 0.3
-  reasoning: false
 
 fallback_chain: [openrouter, deepseek, mock]
 
 roles:
-  # --- strategy / utility layers: crisp, NON-reasoning ---
-  principle:    { provider: deepseek,   model: deepseek-chat,                          temperature: 0.2, reasoning: false }
-  ids_select:   { provider: deepseek,   model: deepseek-chat,                          temperature: 0.0, reasoning: false }
-  feasibility:  { provider: deepseek,   model: deepseek-chat,                          temperature: 0.2, reasoning: false }
-  referee:      { provider: deepseek,   model: deepseek-chat,                          temperature: 0.2, reasoning: false }
+  # --- intake / structuring ---
+  intake:        { model: deepseek/deepseek-chat,            temperature: 0.2 }
 
-  # --- generation / comprehension layers: reasoning ON ---
-  hypothesis:   { provider: openrouter, model: deepseek/deepseek-r1,                   temperature: 0.7, reasoning: true }
-  proponent:    { provider: openrouter, model: deepseek/deepseek-r1,                   temperature: 0.6, reasoning: true }
-  skeptic:      { provider: openrouter, model: deepseek/deepseek-r1,                   temperature: 0.6, reasoning: true }
-  explain:      { provider: openrouter, model: deepseek/deepseek-r1,                   temperature: 0.5, reasoning: true }
+  # --- extraction / summarization (high volume, cheap, crisp) ---
+  extract:       { model: meta-llama/llama-3.3-70b-instruct, temperature: 0.0 }
+  summarize:     { model: deepseek/deepseek-chat,            temperature: 0.2 }
+  retrieval:     { model: deepseek/deepseek-chat,            temperature: 0.0 }
 
-  # --- high-volume extraction: cheap, fast ---
-  extract:      { provider: openrouter, model: meta-llama/llama-3.3-70b-instruct:free, temperature: 0.0, reasoning: false }
-  literature:   { provider: openrouter, model: google/gemini-2.0-flash-001,            temperature: 0.3, reasoning: false }
+  # --- analysis ---
+  literature:    { model: deepseek/deepseek-chat,            temperature: 0.3 }
+  usercontext:   { model: deepseek/deepseek-chat,            temperature: 0.2 }
+
+  # --- generation (creative) ---
+  hypothesis:    { model: qwen/qwen-2.5-72b-instruct,        temperature: 0.7 }
+
+  # --- ranking (crisp, deterministic) ---
+  ranking:       { model: deepseek/deepseek-chat,            temperature: 0.0 }
+
+  # --- critique panel (diverse voices) ---
+  critic_literature:   { model: deepseek/deepseek-chat,            temperature: 0.3 }
+  critic_feasibility:  { model: meta-llama/llama-3.3-70b-instruct, temperature: 0.2 }
+  critic_novelty:      { model: qwen/qwen-2.5-72b-instruct,        temperature: 0.4 }
+  experimental_design: { model: deepseek/deepseek-chat,            temperature: 0.4 }
+  uncertainty_analyst: { model: deepseek/deepseek-chat,            temperature: 0.2 }
+
+  # --- final synthesis ---
+  synthesis:     { model: deepseek/deepseek-chat,            temperature: 0.3 }

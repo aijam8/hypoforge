@@ -37,46 +37,61 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 chmod +x forge
 
-./forge run        # full agentic run — fully offline, no API keys, deterministic
-./forge replay     # re-stream a recorded run (the bulletproof demo path)
-./forge profile    # the inferred lab-capability profile, standalone
+# add a key for the real pipeline (OpenRouter or DeepSeek)
+cp .env.example .env && echo "OPENROUTER_API_KEY=sk-or-..." >> .env
+
+./forge run                                   # real pipeline on the bundled example
+./forge run --data mydata.csv --paper ref.pdf "my research question"
+./forge run --local-only                      # no web; read only local files
+./forge run --no-internet                     # zero egress: no web AND no model calls
+./forge demo                                  # scripted, fully-offline demo (no key needed)
 ```
 
-> Runs out-of-the-box with **no API keys** (mock LLM + canned profile + seeded
-> fixtures). For live models, drop `OPENROUTER_API_KEY` or `DEEPSEEK_API_KEY` in
-> `.env`; the per-role router (`hypoforge/config/models.yaml`) does the rest.
+The router (`hypoforge/config/models.yaml`) maps each subtask to its own model —
+swap DeepSeek / Llama / Qwen / Gemini per slot without touching code.
 
-## What a run does
+## `forge run` — the real pipeline
+
+An evidence-first implementation of the 8-step workflow, every step a live model call:
 
 ```
-ingest (LOCAL) → profile the lab (WEB) → warm-up → closed loop → debate → ranked board → /planes
+① intake        prompt + files → a structured research brief
+② context mode   local-first / institution-aware / no-internet (your choice)
+③ ingest         each file → an Evidence card: claims · methods · assumptions · limitations · confidence (with provenance)
+④ literature     real search (Semantic Scholar / arXiv / OpenAlex / web) → claim map · gap map · contradictions · extension points
+⑤ user-context   infer the lab's real equipment & what it CANNOT do → feasibility veto
+⑥ generate       novel, testable hypotheses grounded in the gaps and the lab's constraints
+⑦ score          multi-objective: info-gain · novelty · feasibility · cost · time · equipment · relevance · uncertainty-reduction
+⑧ debate         5 critics (literature · feasibility · novelty · design · uncertainty) → synthesizer → "what to test next"
 ```
 
-1. **Ingest** local data + literature into a unified `Evidence` model (CSV/PDF/HDF5/… via a graceful parser registry).
-2. **Profile the lab** — discover the group's site, infer instruments → a `CapabilityProfile` feasibility veto.
-3. **Warm-up** — seed competing *principles* from the literature; fit a Gaussian-process surrogate.
-4. **Closed loop** — information-directed experiment selection; when your local data contradicts the literature prior, an **anomaly fires** and a new principle is spawned. The **principle-posterior entropy bends toward zero** as belief concentrates.
-5. **Debate** — proponent / skeptic / referee; the referee is the only agent allowed to *move a score*.
-6. **Report** — a ranked board: `★ NEXT EXPERIMENT` (highest info-gain you can run) vs the demoted moonshot (most info, but unrunnable).
+Inputs can be **CSV/Excel/Parquet/HDF5/NumPy, PDF, Markdown/TXT, and images** —
+anything the parser registry can open. Every claim keeps its source; every
+hypothesis cites the gap it addresses; the feasibility score reflects *your* bench.
 
-The information-gain number is honestly labeled *expected model-discrimination
-(proxy, nats)* — a transparent decision-support heuristic, not a claim of
-calibrated information about nature.
+**Honest data-flow manifest** (`/planes`): raw files never leave the machine
+(`0 raw bytes transmitted`); it reports exactly how much *derived* text went to the
+model provider and which public pages were fetched. `--no-internet` makes egress
+truly zero (mock models).
+
+## `forge demo` — the scripted offline showcase
+
+A deterministic, no-API-key soft-matter walkthrough (real GP + info-gain + anomaly
+engine under scripted narration) used for a bulletproof live demo. `forge replay`
+re-streams a recorded run.
 
 ## Architecture
 
 | Module | Role |
 |---|---|
-| `hypoforge/cli.py` | `forge run / replay / profile` |
-| `hypoforge/orchestrator.py` | the rails — scripted control flow rendered agentically |
-| `hypoforge/engine.py` | GP surrogate + variance-reduction info-gain + 2-principle posterior + anomaly detection |
-| `hypoforge/capability.py` | institution profiling → feasibility veto (the wedge) |
-| `hypoforge/evaluate.py` | `V(h) = gate(F,T) · quality` ranking |
-| `hypoforge/debate.py` | proponent / skeptic / referee |
-| `hypoforge/router.py` | modular per-role model routing (OpenRouter / DeepSeek / mock) |
-| `hypoforge/render.py` | one event renderer shared by live run **and** replay |
-| `hypoforge/planes.py` | the two-data-plane firewall + `/planes` manifest |
-| `parsers/`, `tools/lit_apis.py` | salvaged multi-format ingestion + literature APIs |
+| `hypoforge/cli.py` | `forge run / demo / replay / profile` |
+| `hypoforge/pipeline.py` | **the real 8-step pipeline** (`forge run`) |
+| `hypoforge/steps.py` | the 8 agents: intake · extract · literature · user-context · generate · score · debate |
+| `hypoforge/router.py` | modular per-role model routing (OpenRouter / DeepSeek / mock) + usage accounting |
+| `hypoforge/planes.py` | honest 3-plane firewall (local-raw / model-derived / web) + `/planes` manifest |
+| `hypoforge/present.py` | rich rendering of briefs, evidence, maps, scores, the final report |
+| `parsers/`, `tools/lit_apis.py` | multi-format ingestion + real literature APIs (Semantic Scholar/arXiv/OpenAlex/web) |
+| `hypoforge/orchestrator.py`, `engine.py`, `capability.py`, `evaluate.py`, `render.py` | the scripted `forge demo` (GP + info-gain + anomaly engine) |
 
 Design rationale and the full build plan are in [`DESIGN.md`](DESIGN.md); the demo
 runbook is in [`DEMO.md`](DEMO.md).
