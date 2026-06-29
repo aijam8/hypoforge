@@ -6,3 +6,6 @@ __pycache__/
 data/
 .forge/
 *.log
+
+# local Claude Code settings
+.claude/
