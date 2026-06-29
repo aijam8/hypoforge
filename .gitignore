@@ -9,3 +9,7 @@ data/
 
 # local Claude Code settings
 .claude/
+
+# user-dropped working data (do not publish)
+examples/*.pdf
+examples/nanoscale.md
