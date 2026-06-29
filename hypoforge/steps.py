@@ -280,6 +280,38 @@ def _clamp(v):
         return 0.5
 
 
+# ====================================================== 7b. TECHNOLOGY PLAN
+def technology_plan(hyp: dict, capability: dict, brief: dict) -> list[dict]:
+    """Concrete technologies/instruments/methods needed to actually run the chosen
+    hypothesis, each tagged by availability against the inferred lab capabilities."""
+    p = f"""List the concrete technologies, instruments, and methods needed to actually
+carry out this experiment — be specific (name real techniques, not vague categories).
+
+FIELD: {brief.get('domain')}
+HYPOTHESIS: {hyp.get('statement')}
+TEST PLAN: {hyp.get('test_plan')}
+WHAT THE LAB HAS: equipment={capability.get('likely_equipment')}, techniques={capability.get('techniques')}
+WHAT THE LAB LACKS: {capability.get('likely_infeasible')}
+
+For each technology, decide availability by comparing to what the lab has/lacks:
+in_house (they have it) · acquire (buy/build, give rough cost/effort) · collaborate
+(use a shared/partner facility) · unknown.
+
+Return JSON:
+{{"technologies": [
+  {{"name": "specific instrument/technique (e.g. 'TEM for particle sizing', 'fixed-bed reactor + GC-MS')",
+    "purpose": "the step in THIS experiment it enables",
+    "availability": "in_house|acquire|collaborate|unknown",
+    "note": "rough cost/effort, or an alternative if they lack it"}}
+]}}
+Cover the full workflow: synthesis/sample prep, the core measurement, and characterization."""
+    out = router.generate_json("technology", p,
+                               "You are an experimental methods engineer who knows lab instrumentation and rough costs.",
+                               max_tokens=1600)
+    techs = out.get("technologies") if isinstance(out, dict) else (out if isinstance(out, list) else [])
+    return [t for t in (techs or []) if isinstance(t, dict) and t.get("name")][:10]
+
+
 # ================================================================== 8. DEBATE
 _CRITICS = {
     "critic_literature": "Literature reviewer: is each hypothesis truly grounded in the evidence/gaps, or already answered?",

@@ -135,6 +135,10 @@ def run(prompt: str, data_paths: list[str], paper_paths: list[str], opts: dict):
         deb = steps.debate(top, brief, lit, cap)
     present.show_critiques(deb)
     hyps.sort(key=lambda h: h["value"], reverse=True)
+    rec = present.recommended(hyps, deb)
+    if rec:
+        with _status("mapping the technologies needed to run the chosen experiment…"):
+            rec["technologies"] = steps.technology_plan(rec, cap, brief)
     console.print("")
     present.show_final(hyps, deb, brief)
     tr.emit("debate", synthesis=deb.get("synthesis", {}))

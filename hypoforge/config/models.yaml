@@ -30,6 +30,9 @@ roles:
   # --- ranking (crisp, deterministic) ---
   ranking:       { model: deepseek/deepseek-chat,            temperature: 0.0 }
 
+  # --- concrete technology / instrumentation planning for the chosen hypothesis ---
+  technology:    { model: deepseek/deepseek-chat,            temperature: 0.2 }
+
   # --- critique panel (diverse voices) ---
   critic_literature:   { model: deepseek/deepseek-chat,            temperature: 0.3 }
   critic_feasibility:  { model: meta-llama/llama-3.3-70b-instruct, temperature: 0.2 }

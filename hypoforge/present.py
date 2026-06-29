@@ -81,10 +81,33 @@ def show_critiques(deb: dict):
         console.print(f"  [bold]{role}[/bold]: [dim]{r.get('assessment','')[:300]}[/dim]")
 
 
+def recommended(hyps: list[dict], deb: dict) -> dict | None:
+    """The single chosen hypothesis (synthesizer's pick, else top-ranked)."""
+    if not hyps:
+        return None
+    rec_id = (deb.get("synthesis", {}) or {}).get("recommendation_id")
+    return next((h for h in hyps if h["id"] == rec_id), hyps[0])
+
+
+_AVAIL = {"in_house": "[green]in-house[/green]", "acquire": "[yellow]acquire[/yellow]",
+          "collaborate": "[yellow]collaborate[/yellow]", "unknown": "[dim]unknown[/dim]"}
+
+
+def _tech_block(rec: dict) -> str:
+    techs = rec.get("technologies") or []
+    if not techs:
+        return ""
+    lines = ["", "[bold]Technologies you'd need[/bold]"]
+    for t in techs[:10]:
+        tag = _AVAIL.get(t.get("availability", "unknown"), _AVAIL["unknown"])
+        note = f" [dim]— {t['note']}[/dim]" if t.get("note") else ""
+        lines.append(f"  • [bold]{t.get('name','')}[/bold] ({tag}) — {t.get('purpose','')}{note}")
+    return "\n".join(lines) + "\n"
+
+
 def show_final(hyps: list[dict], deb: dict, brief: dict):
     syn = deb.get("synthesis", {})
-    rec_id = syn.get("recommendation_id") or (hyps[0]["id"] if hyps else "?")
-    rec = next((h for h in hyps if h["id"] == rec_id), hyps[0] if hyps else None)
+    rec = recommended(hyps, deb)
     if not rec:
         return
     s = rec["scores"]
@@ -93,9 +116,9 @@ def show_final(hyps: list[dict], deb: dict, brief: dict):
             f"[bold]Explains[/bold]  {rec.get('what_it_explains','')}\n"
             f"[bold]Prediction[/bold]  {rec.get('prediction','')}\n"
             f"[bold]How to test[/bold]  {rec.get('test_plan','')}\n"
-            f"[bold]Needs[/bold]  {', '.join(rec.get('required_equipment', []))}\n"
             f"[bold]Grounded in[/bold]  {rec.get('supporting_evidence','')}\n"
-            f"[bold]Falsified if[/bold]  {rec.get('evidence_that_would_weaken','')}\n\n"
+            f"[bold]Falsified if[/bold]  {rec.get('evidence_that_would_weaken','')}\n"
+            f"{_tech_block(rec)}\n"
             f"[dim]info-gain {s['expected_information_gain']:.2f} · novelty {s['novelty']:.2f} · "
             f"feasibility {s['feasibility']:.2f} · value {rec['value']:.3f}[/dim]\n"
             f"[italic]{syn.get('rationale','')}[/italic]")
