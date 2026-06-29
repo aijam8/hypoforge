@@ -1,0 +1,30 @@
+# HypoForge modular model router.
+# Each agent ROLE maps to a model. Honors the PiEvo finding that reasoning/"think"
+# models hurt the strategic/utility layers (-26%) -> strategy roles use crisp
+# NON-reasoning models; generation/critique roles use reasoning models.
+# Providers (all OpenAI-compatible): openrouter, deepseek. Falls back to "mock"
+# (offline, no key) so the tool ALWAYS runs.
+
+defaults:
+  provider: openrouter
+  temperature: 0.3
+  reasoning: false
+
+fallback_chain: [openrouter, deepseek, mock]
+
+roles:
+  # --- strategy / utility layers: crisp, NON-reasoning ---
+  principle:    { provider: deepseek,   model: deepseek-chat,                          temperature: 0.2, reasoning: false }
+  ids_select:   { provider: deepseek,   model: deepseek-chat,                          temperature: 0.0, reasoning: false }
+  feasibility:  { provider: deepseek,   model: deepseek-chat,                          temperature: 0.2, reasoning: false }
+  referee:      { provider: deepseek,   model: deepseek-chat,                          temperature: 0.2, reasoning: false }
+
+  # --- generation / comprehension layers: reasoning ON ---
+  hypothesis:   { provider: openrouter, model: deepseek/deepseek-r1,                   temperature: 0.7, reasoning: true }
+  proponent:    { provider: openrouter, model: deepseek/deepseek-r1,                   temperature: 0.6, reasoning: true }
+  skeptic:      { provider: openrouter, model: deepseek/deepseek-r1,                   temperature: 0.6, reasoning: true }
+  explain:      { provider: openrouter, model: deepseek/deepseek-r1,                   temperature: 0.5, reasoning: true }
+
+  # --- high-volume extraction: cheap, fast ---
+  extract:      { provider: openrouter, model: meta-llama/llama-3.3-70b-instruct:free, temperature: 0.0, reasoning: false }
+  literature:   { provider: openrouter, model: google/gemini-2.0-flash-001,            temperature: 0.3, reasoning: false }

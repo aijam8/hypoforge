@@ -1,0 +1,21 @@
+{
+  "group": "Soft Matter & Self-Assembly Group",
+  "institution": "Brookhaven National Laboratory — CMPMS Division",
+  "institution_type": "national_lab",
+  "ror": "https://ror.org/02ex6cf31",
+  "homepage": "https://www.bnl.gov/cmpmsd/",
+  "field_concepts": ["block copolymer self-assembly", "thin films", "directed self-assembly", "X-ray scattering"],
+  "confidence_overall": 0.86,
+  "source_note": "Crawled facilities page + last 20 OpenAlex works' methods sections.",
+  "instruments": [
+    {"name": "NSLS-II 11-BM (CMS)", "technique": "GISAXS / SAXS", "status": "in_house", "confidence": 0.92, "source": "facilities_page", "throughput": "high", "access_weeks": 1},
+    {"name": "Anton Paar MCR rheometer", "technique": "shear rheology / shear alignment", "status": "in_house", "confidence": 0.9, "source": "facilities_page", "access_weeks": 0},
+    {"name": "Bruker Dimension AFM", "technique": "surface morphology", "status": "in_house", "confidence": 0.85, "source": "paper_methods", "access_weeks": 0},
+    {"name": "DSC (TA Instruments)", "technique": "thermal transitions", "status": "in_house", "confidence": 0.8, "source": "paper_methods", "access_weeks": 0},
+    {"name": "JEOL TEM", "technique": "real-space cross-section imaging", "status": "shared", "confidence": 0.7, "source": "facilities_page", "access_weeks": 3},
+    {"name": "SCFT / FEM compute cluster", "technique": "field-theoretic simulation", "status": "in_house", "confidence": 0.85, "source": "paper_methods", "access_weeks": 0},
+    {"name": "Neutron reflectometry (NIST)", "technique": "buried-interface depth profiling", "status": "collaborator", "confidence": 0.5, "source": "paper_acknowledgements", "access_weeks": 12},
+    {"name": "Cryo-EM single-particle facility", "technique": "cryogenic single-particle reconstruction", "status": "infeasible", "confidence": 0.6, "source": "field_prior", "note": "Not available at this institution; ~$5M instrument + dedicated expertise.", "access_weeks": 26}
+  ],
+  "expertise": ["block-copolymer phase behavior", "thin-film GISAXS", "shear alignment of mesophases", "directed self-assembly", "field-theoretic simulation"]
+}

@@ -1,0 +1,32 @@
+# --- CLI (HypoForge — the current product) ---
+typer>=0.12
+rich>=13.7
+pyyaml>=6.0
+
+# --- App / UI (legacy Streamlit prototype) ---
+streamlit>=1.36
+plotly>=5.22
+pandas>=2.2
+numpy>=1.26
+python-dotenv>=1.0
+
+# --- LLM / agents ---
+langchain>=0.2
+langchain-core>=0.2
+langchain-google-genai>=1.0
+langchain-openai>=0.1   # used for DeepSeek / OpenRouter (OpenAI-compatible)
+
+# --- Parsing ---
+pypdf>=4.2
+python-docx>=1.1
+openpyxl>=3.1
+pyarrow>=16.0           # parquet
+h5py>=3.11              # HDF5 / scientific sims
+pillow>=10.3            # images
+scipy>=1.13
+scikit-learn>=1.5       # light clustering / PCA for understanding
+
+# --- Literature / web ---
+requests>=2.32
+arxiv>=2.1
+duckduckgo-search>=6.1
